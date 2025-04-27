@@ -151,7 +151,6 @@ function star.Step(obj)
                     set_var(obj, "image_angle", -15)
                 end
                 set_var(obj, "invert", not get_var(obj, "invert"))
-                print(get_var(obj, "invert"))
 
                 local star_amount = 90
                 local loop_offset = 45

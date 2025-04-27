@@ -19,7 +19,7 @@ function star.BossIntro(obj)
         spawn_enemy(view_x + 120, view_y + 120, "star_boss")
     end
     if (get_var(obj, "boss_timer") == 60) then
-        boss_message(120, 80, "star")
+        boss_message(120, 80, "wisp")
     end
     if (get_var(obj, "boss_timer") == 0) then
         play_music(get_asset("mus_the_4th"))
@@ -73,6 +73,12 @@ end
 
 
 function star.Step(obj)
+
+    local shrinker = function(v)
+        set_var(v, "image_xscale", lerp(get_var(v, "image_xscale"), 0.75, 0.1))
+        set_var(v, "image_yscale", lerp(get_var(v, "image_yscale"), 0.75, 0.1))
+    end
+
     init_var(obj, "siner", 0)
     set_var(obj, "siner", get_var(obj, "siner") + 1)
 
@@ -152,6 +158,7 @@ function star.Step(obj)
                 for i = 1, 350, star_amount do
                     local star_stop = spawn_projectile(get_var(obj, "x"), get_var(obj, "y"), rot_x(i + get_var(obj, "spin_rando")) * 1.5, rot_y(i + get_var(obj, "spin_rando")) * 1.5, get_asset("spr_enemy_bullet_dstar"))
                     LumHelp.AddCallback(star_stop, stop_and_schmoove)
+                    LumHelp.AddCallback(star_stop, shrinker)
                     spawn_projectile(get_var(obj, "x"), get_var(obj, "y"), -rot_x(i + get_var(obj, "spin_rando") + loop_offset) * 1.5, -rot_y(i + get_var(obj, "spin_rando") + loop_offset) * 1.5, get_asset("spr_enemy_bullet_dstar_blue"))
                 end
                 if hard_mode then
@@ -175,17 +182,20 @@ function star.Step(obj)
     if (get_var(obj, "state") == StarStates.StarStorm) then
 
         if (get_var(obj, "ai_timer") < 100) then
+            local random_shake = math.random(-2, 2)
+            set_var(obj, "hspeed", random_shake)
 
             local star_scatter = math.random(-180, 0)
 
             if (math.fmod(get_var(obj, "ai_timer"), 10) == 0) then
+                set_var(obj, "hspeed", 0)
                 local bul = spawn_projectile(get_var(obj, "x"), get_var(obj, "y"), rot_x(star_scatter), rot_y(star_scatter), get_asset("spr_bullet_coil"))
                 if hard_mode then
                     local speed_randomizer = math.random(-1, 1)
                     spawn_projectile(get_var(obj, "x"), get_var(obj, "y"), 1, speed_randomizer, get_asset("spr_tribullet"))
                     spawn_projectile(get_var(obj, "x"), get_var(obj, "y"), -1, speed_randomizer, get_asset("spr_tribullet"))
                 end
-                set_var(obj, "vspeed", get_var(obj, "vspeed") - 0.4)
+                set_var(obj, "vspeed", get_var(obj, "vspeed") - 0.5)
                 set_var(bul, "ignore_walls", true)
             end
         end
@@ -193,6 +203,7 @@ function star.Step(obj)
         local decide_smash_location = math.random(20, 200)
 
         if (get_var(obj, "ai_timer") == 100) then
+            set_var(obj, "hspeed", 0)
             set_var(obj, "vspeed", 0)
             set_var(obj, "y", view_y)
         elseif (get_var(obj, "ai_timer") == 110) then
@@ -236,6 +247,7 @@ function star.Step(obj)
     end
 
     if (get_var(obj, "state") == StarStates.Dead) then
+        set_var(obj, "hspeed", 0)
         set_var(obj, "vspeed", 0)
         set_var(obj, "ai_timer", 0)
     end

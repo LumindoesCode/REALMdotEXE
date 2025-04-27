@@ -32,6 +32,7 @@ function star.Create(obj)
     set_var(obj, "sprite_index", star_sprite)
     set_var(obj, "hp", 500)
     set_var(obj, "maxhp", 500)
+    set_var(obj, "pass_wall", 1)
     set_var(obj, "hp_damage", 500)
     set_var(obj, "state", "INTRO")
     set_var(obj, "ai_timer", 0)
@@ -41,6 +42,7 @@ end
 StarStates = {
     Intro = "INTRO",
     StarSucc = "STARSUCC", --Attacks similarly to Database's rings attack, but moves up and down while doing it
+    StarStorm = "STARSTORM",
     Dead = "DED"
 }
 
@@ -95,12 +97,13 @@ function star.Step(obj)
 
     if (get_var(obj, "state") == StarStates.Intro and get_var(obj, "ai_timer") >= 30) then
         set_var(obj, "ai_timer", 0)
-        set_var(obj, "state", StarStates.StarSucc)
+        set_var(obj, "state", StarStates.StarStorm)
     end
 
     if (get_var(obj, "state") == StarStates.StarSucc) then
         if (get_var(obj, "ai_timer") < 60) then
-            set_var(obj, "vspeed", lerp(get_var(obj, "y"), view_y + 170, 0.1) - get_var(obj, "y"))
+            set_var(obj, "vspeed", lerp(get_var(obj, "y"), view_y + 150, 0.1) - get_var(obj, "y"))
+            set_var(obj, "hspeed", lerp(get_var(obj, "x"), view_x + 120, 0.1) - get_var(obj, "x"))
         end
 
         if (get_var(obj, "ai_timer") >= 60) then
@@ -152,16 +155,84 @@ function star.Step(obj)
                     spawn_projectile(get_var(obj, "x"), get_var(obj, "y"), -rot_x(i + get_var(obj, "spin_rando") + loop_offset) * 1.5, -rot_y(i + get_var(obj, "spin_rando") + loop_offset) * 1.5, get_asset("spr_enemy_bullet_dstar_blue"))
                 end
                 if hard_mode then
-                    for i = 1, 350, 45 do
+                    for i = 1, 350, 60 do
                         spawn_projectile(get_var(obj, "x"), get_var(obj, "y"), rot_x(i + get_var(obj, "spin_rando")), rot_y(i + get_var(obj, "spin_rando")), get_asset("spr_blinkbullet"))
                     end
                 end
             end
             
 
-            set_var(obj, "image_angle", lerp(get_var(obj, "image_angle"), 0, 0.2 * 0.2))
+            set_var(obj, "image_angle", lerp(get_var(obj, "image_angle"), 0, 0.35 * 0.35))
             
         end
+
+        if (get_var(obj, "ai_timer") == 280) then
+            set_var(obj, "ai_timer", 0)
+            set_var(obj, "state", StarStates.StarStorm)
+        end
+    end
+
+    if (get_var(obj, "state") == StarStates.StarStorm) then
+
+        if (get_var(obj, "ai_timer") < 100) then
+
+            local star_scatter = math.random(-180, 0)
+
+            if (math.fmod(get_var(obj, "ai_timer"), 10) == 0) then
+                local bul = spawn_projectile(get_var(obj, "x"), get_var(obj, "y"), rot_x(star_scatter), rot_y(star_scatter), get_asset("spr_bullet_coil"))
+                if hard_mode then
+                    local speed_randomizer = math.random(-1, 1)
+                    spawn_projectile(get_var(obj, "x"), get_var(obj, "y"), 1, speed_randomizer, get_asset("spr_tribullet"))
+                    spawn_projectile(get_var(obj, "x"), get_var(obj, "y"), -1, speed_randomizer, get_asset("spr_tribullet"))
+                end
+                set_var(obj, "vspeed", get_var(obj, "vspeed") - 0.4)
+                set_var(bul, "ignore_walls", true)
+            end
+        end
+
+        local decide_smash_location = math.random(20, 200)
+
+        if (get_var(obj, "ai_timer") == 100) then
+            set_var(obj, "vspeed", 0)
+            set_var(obj, "y", view_y)
+        elseif (get_var(obj, "ai_timer") == 110) then
+            for i = 0, 240, 20 do
+                spawn_particle(view_x + decide_smash_location - 20, view_y + i + 20, 0, 0, get_asset("spr_danger_new"))
+                spawn_particle(view_x + decide_smash_location, view_y + i + 20, 0, 0, get_asset("spr_danger_new"))
+                spawn_particle(view_x + decide_smash_location + 20, view_y + i + 20, 0, 0, get_asset("spr_danger_new"))
+                set_var(obj, "smash_location", decide_smash_location)
+            end
+        end
+
+        if (get_var(obj, "ai_timer") == 120) then
+            set_var(obj, "x", get_var(obj, "smash_location") + view_x)
+            set_var(obj, "vspeed", 5)
+        elseif (get_var(obj, "y") == view_y + 260) then
+            play_sound(get_asset("snd_wham"), get_var(obj, "x"), get_var(obj, "y"))
+            play_sound(get_asset("snd_clatter"), get_var(obj, "x"), get_var(obj, "y"))
+
+            add_screenshake(15)
+            for i = 0, 350, 30 do
+                local star_wall = spawn_projectile(get_var(obj, "x"), get_var(obj, "y"), rot_x(i) * 2, rot_y(i) * 2, get_asset("spr_enemy_bullet_dstar"))
+                set_var(star_wall, "ignore_walls", true)
+            end
+            if (hard_mode) then
+                for i = 0, 350, 20 do
+                    local star_wall = spawn_projectile(get_var(obj, "x"), get_var(obj, "y"), rot_x(i), rot_y(i), get_asset("spr_bullet_dopple_blue"))
+                    set_var(star_wall, "image_angle", call_function("point_direction", {0, 0, get_var(star_wall, "hspeed"), get_var(star_wall, "vspeed")}))
+                    set_var(star_wall, "ignore_walls", true)
+                end
+            end
+            set_var(obj, "vspeed", -6)
+        end
+
+        if (get_var(obj, "ai_timer") >= 178 and get_var(obj, "ai_timer") < 210) then
+            set_var(obj, "vspeed", get_var(obj, "vspeed") * 0.9)
+        elseif (get_var(obj, "ai_timer") >= 210) then
+            set_var(obj, "ai_timer", 0)
+            set_var(obj, "state", StarStates.StarSucc)
+        end
+
     end
 
     if (get_var(obj, "state") == StarStates.Dead) then

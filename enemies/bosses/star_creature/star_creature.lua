@@ -107,8 +107,7 @@ function star.Step(obj)
 
 
     if (get_var(obj, "state") == StarStates.Intro and get_var(obj, "ai_timer") >= 30) then
-        set_var(obj, "ai_timer", 0)
-        set_var(obj, "state", StarStates.StarSpiral)
+        ChangeState(obj, {StarStates.StarSucc, StarStates.StarStorm})
     end
 
     if (get_var(obj, "state") == StarStates.StarSucc) then
@@ -257,6 +256,8 @@ function star.Step(obj)
 
     end
 
+    init_var(obj, "inverted_spin", true)
+
     if (get_var(obj, "state") == StarStates.StarSpiral) then
 
         if (get_var(obj, "ai_timer") < 20) then
@@ -265,11 +266,19 @@ function star.Step(obj)
         end
 
         if (get_var(obj, "ai_timer") >= 20 and get_var(obj, "ai_timer") < 190) then
-            set_var(obj, "image_angle", get_var(obj, "image_angle") + 2)
 
 
-            set_var(obj, "vspeed", math.sin(get_var(obj, "siner") / 25))
-            set_var(obj, "hspeed", -math.cos(get_var(obj, "siner") / 25))
+
+
+            if (get_var(obj, "inverted_spin")) then
+                set_var(obj, "vspeed", -math.sin(get_var(obj, "siner") / 25))
+                set_var(obj, "hspeed", -math.cos(get_var(obj, "siner") / 25))
+                set_var(obj, "image_angle", get_var(obj, "image_angle") - 2)
+            else
+                set_var(obj, "vspeed", math.sin(get_var(obj, "siner") / 25))
+                set_var(obj, "hspeed", -math.cos(get_var(obj, "siner") / 25))
+                set_var(obj, "image_angle", get_var(obj, "image_angle") + 2)
+            end
 
 
             if (math.fmod(get_var(obj, "ai_timer"), 10) == 0) then
@@ -285,10 +294,15 @@ function star.Step(obj)
                     local proj = spawn_projectile(get_var(obj, "x"), get_var(obj, "y"), rot_x(i + get_var(obj, "rotator")), rot_y(i + get_var(obj, "rotator")), get_asset("spr_bullet_dopple_red"))
                     set_var(proj, "image_angle", call_function("point_direction", {0, 0, get_var(proj, "hspeed"), get_var(proj, "vspeed")}))
                 end
-                set_var(obj, "rotator", get_var(obj, "rotator") + 12)
+                if (get_var(obj, "inverted_spin")) then
+                    set_var(obj, "rotator", get_var(obj, "rotator") + 12)
+                else
+                    set_var(obj, "rotator", get_var(obj, "rotator") - 12)
+                end
             end
         end
         if (get_var(obj, "ai_timer") == 190) then
+            set_var(obj, "inverted_spin", not get_var(obj, "inverted_spin"))
             set_var(obj, "vspeed", 0)
             set_var(obj, "hspeed", 0)
             ChangeState(obj, {StarStates.StarSucc, StarStates.StarStorm})

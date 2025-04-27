@@ -61,12 +61,10 @@ function star.Draw(obj)
             set_var(v, "image_alpha", get_var(v, "image_alpha") - 0.01)
             set_var(v, "image_xscale", get_var(v, "image_xscale") - 0.01)
             set_var(v, "image_yscale", get_var(v, "image_yscale") - 0.01)
+            if (get_var(v, "image_alpha") <= 0) then
+                call_function("instance_destroy", {v})
+            end
         end
-
-        if (get_var(sp, "image_alpha") == 0.5) then
-            call_function("instance_destroy", {sp})
-        end
-
         LumHelp.AddCallback(sp, fader)
     end
 end

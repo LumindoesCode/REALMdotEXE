@@ -43,18 +43,25 @@ StarStates = {
     Intro = "INTRO",
     StarSucc = "STARSUCC", --Attacks similarly to Database's rings attack, but moves up and down while doing it
     StarStorm = "STARSTORM",
+    StarSpiral = "STARSPIRAL",
     Dead = "DED"
 }
+
+function ChangeState(obj, states)
+    set_var(obj, "ai_timer", 0)
+    local state = states[math.random(1, #states)]
+    set_var(obj, "state", state)
+end
 
 
 function star.Draw(obj)
 
-    if (math.fmod(get_var(obj, "ai_timer"), 10) == 0) then
+    if (math.fmod(get_var(obj, "ai_timer"), 6) == 0) then
         local sp = spawn_particle(get_var(obj, "x"), get_var(obj, "y"), 0, 0, star_sprite)
 
-        set_var(sp, "image_alpha", 0.75)
-        set_var(sp, "image_xscale", 0.75)
-        set_var(sp, "image_yscale", 0.75)
+        set_var(sp, "image_alpha", 0.5)
+        set_var(sp, "image_xscale", 0.5)
+        set_var(sp, "image_yscale", 0.5)
 
 
         local fader = function(v)
@@ -101,16 +108,19 @@ function star.Step(obj)
 
     if (get_var(obj, "state") == StarStates.Intro and get_var(obj, "ai_timer") >= 30) then
         set_var(obj, "ai_timer", 0)
-        set_var(obj, "state", StarStates.StarStorm)
+        set_var(obj, "state", StarStates.StarSpiral)
     end
 
     if (get_var(obj, "state") == StarStates.StarSucc) then
-        if (get_var(obj, "ai_timer") < 60) then
-            set_var(obj, "vspeed", lerp(get_var(obj, "y"), view_y + 150, 0.1) - get_var(obj, "y"))
-            set_var(obj, "hspeed", lerp(get_var(obj, "x"), view_x + 120, 0.1) - get_var(obj, "x"))
+        
+        set_var(obj, "image_angle", lerp(get_var(obj, "image_angle"), 0, 0.35 * 0.35))
+
+        if (get_var(obj, "ai_timer") < 30) then
+            set_var(obj, "vspeed", lerp(get_var(obj, "y"), view_y + 150, 0.2) - get_var(obj, "y"))
+            set_var(obj, "hspeed", lerp(get_var(obj, "x"), view_x + 120, 0.2) - get_var(obj, "x"))
         end
 
-        if (get_var(obj, "ai_timer") >= 60) then
+        if (get_var(obj, "ai_timer") >= 30) then
 
             set_var(obj, "vspeed", math.sin(get_var(obj, "siner") / 25) * 1)
 
@@ -166,18 +176,15 @@ function star.Step(obj)
                 end
             end
             
-
-            set_var(obj, "image_angle", lerp(get_var(obj, "image_angle"), 0, 0.35 * 0.35))
-            
         end
 
         if (get_var(obj, "ai_timer") == 280) then
-            set_var(obj, "ai_timer", 0)
-            set_var(obj, "state", StarStates.StarStorm)
+            ChangeState(obj, {StarStates.StarStorm, StarStates.StarSpiral})
         end
     end
 
     if (get_var(obj, "state") == StarStates.StarStorm) then
+        set_var(obj, "image_angle", lerp(get_var(obj, "image_angle"), 0, 0.35 * 0.35))
 
         if (get_var(obj, "ai_timer") < 100) then
             local random_shake = math.random(-2, 2)
@@ -226,8 +233,16 @@ function star.Step(obj)
                 set_var(star_wall, "ignore_walls", true)
             end
             if (hard_mode) then
-                for i = 0, 350, 20 do
-                    local star_wall = spawn_projectile(get_var(obj, "x"), get_var(obj, "y"), rot_x(i), rot_y(i), get_asset("spr_bullet_dopple_blue"))
+                local dopplers = 30
+                local loop_rotation = 15
+
+                if (get_global("game_loop") >= 5) then
+                    dopplers = 20
+                    loop_rotation = 0
+                end
+
+                for i = 0, 350, dopplers do
+                    local star_wall = spawn_projectile(get_var(obj, "x"), get_var(obj, "y"), rot_x(i + loop_rotation), rot_y(i + loop_rotation), get_asset("spr_bullet_dopple_blue"))
                     set_var(star_wall, "image_angle", call_function("point_direction", {0, 0, get_var(star_wall, "hspeed"), get_var(star_wall, "vspeed")}))
                     set_var(star_wall, "ignore_walls", true)
                 end
@@ -238,8 +253,46 @@ function star.Step(obj)
         if (get_var(obj, "ai_timer") >= 178 and get_var(obj, "ai_timer") < 210) then
             set_var(obj, "vspeed", get_var(obj, "vspeed") * 0.9)
         elseif (get_var(obj, "ai_timer") >= 210) then
-            set_var(obj, "ai_timer", 0)
-            set_var(obj, "state", StarStates.StarSucc)
+            ChangeState(obj, {StarStates.StarSucc, StarStates.StarSpiral})
+        end
+
+    end
+
+    if (get_var(obj, "state") == StarStates.StarSpiral) then
+
+        if (get_var(obj, "ai_timer") < 20) then
+            set_var(obj, "vspeed", lerp(get_var(obj, "y"), view_y + 150, 0.2) - get_var(obj, "y"))
+            set_var(obj, "hspeed", lerp(get_var(obj, "x"), view_x + 110, 0.2) - get_var(obj, "x"))
+        end
+
+        if (get_var(obj, "ai_timer") >= 20 and get_var(obj, "ai_timer") < 190) then
+            set_var(obj, "image_angle", get_var(obj, "image_angle") + 2)
+
+
+            set_var(obj, "vspeed", math.sin(get_var(obj, "siner") / 25))
+            set_var(obj, "hspeed", -math.cos(get_var(obj, "siner") / 25))
+
+
+            if (math.fmod(get_var(obj, "ai_timer"), 10) == 0) then
+                init_var(obj, "rotator", 0)
+                local spiral_amount = 180
+
+                if hard_mode then
+                    spiral_amount = 120
+                end
+                play_sound(get_asset("snd_fireball_fire"), get_var(obj, "x"))
+
+                for i = 0, 350, spiral_amount do
+                    local proj = spawn_projectile(get_var(obj, "x"), get_var(obj, "y"), rot_x(i + get_var(obj, "rotator")), rot_y(i + get_var(obj, "rotator")), get_asset("spr_bullet_dopple_red"))
+                    set_var(proj, "image_angle", call_function("point_direction", {0, 0, get_var(proj, "hspeed"), get_var(proj, "vspeed")}))
+                end
+                set_var(obj, "rotator", get_var(obj, "rotator") + 12)
+            end
+        end
+        if (get_var(obj, "ai_timer") == 190) then
+            set_var(obj, "vspeed", 0)
+            set_var(obj, "hspeed", 0)
+            ChangeState(obj, {StarStates.StarSucc, StarStates.StarStorm})
         end
 
     end

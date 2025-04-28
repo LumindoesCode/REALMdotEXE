@@ -16,12 +16,12 @@ end
 function star.BossIntro(obj)
     init_var(obj, "boss_timer", 0)
     if (get_var(obj, "boss_timer") == 0) then
-        spawn_enemy(view_x + 120, view_y + 120, "star_boss")
+        spawn_enemy(view_x + 120, view_y, "star_boss")
     end
-    if (get_var(obj, "boss_timer") == 60) then
+    if (get_var(obj, "boss_timer") == 85) then
         boss_message(120, 80, "wisp")
     end
-    if (get_var(obj, "boss_timer") == 0) then
+    if (get_var(obj, "boss_timer") == 85) then
         play_music(get_asset("mus_the_4th"))
     end
     set_var(obj, "boss_timer", get_var(obj, "boss_timer") + 1)
@@ -30,10 +30,10 @@ end
 
 function star.Create(obj)
     set_var(obj, "sprite_index", star_sprite)
-    set_var(obj, "hp", 500)
-    set_var(obj, "maxhp", 500)
+    set_var(obj, "hp", 2500)
+    set_var(obj, "maxhp", 2500)
+    set_var(obj, "hp_damage", 2500)
     set_var(obj, "pass_wall", 1)
-    set_var(obj, "hp_damage", 500)
     set_var(obj, "state", "INTRO")
     set_var(obj, "ai_timer", 0)
 end
@@ -113,26 +113,95 @@ function star.Step(obj)
     set_var(obj, "siner", get_var(obj, "siner") + 1)
 
     if (get_var(obj, "behavior") == "dead") then
+
+        set_var(obj, "image_angle", get_var(obj, "image_angle") + 15)
+
         set_var(obj, "state", StarStates.Dead)
         init_var(obj, "dead_timer", 0)
 
         if (get_var(obj, "dead_timer") == 0) then
             clear_bullets(get_var(obj, "x"), get_var(obj, "y"))
+            set_var(obj, "vspeed", -6)
+            set_var(obj, "hspeed", math.random(-2, 2))
+            play_sound(get_asset("snd_whirr"), view_x + 120)
+            add_screenshake(5)
         end
 
-        if (get_var(obj, "dead_timer") == 30) then
-            play_sound(get_asset("snd_boom"), view_x + 120)
-            add_screenshake(5)
+        if (get_var(obj, "dead_timer") > 0 and get_var(obj, "dead_timer") < 60) then
+            set_var(obj, "vspeed", get_var(obj, "vspeed") + 0.5)
+        end
 
-        elseif (get_var(obj, "dead_timer") == 31) then
+        if (get_var(obj, "dead_timer") == 60) then
+            play_sound(get_asset("snd_boom"), view_x + 120)
+            add_screenshake(10)
+
+        elseif (get_var(obj, "dead_timer") == 61) then
             call_function("instance_destroy", {obj})
         end
         set_var(obj, "dead_timer", get_var(obj, "dead_timer") + 1)
     end
 
+    if (get_var(obj, "state") == StarStates.Intro) then
+        if (get_var(obj, "ai_timer") == 15) then
+            for i = 0, 240, 20 do
+                spawn_particle(view_x + 120 - 20, view_y + i + 20, 0, 0, get_asset("spr_danger_new"))
+                spawn_particle(view_x + 120, view_y + i + 20, 0, 0, get_asset("spr_danger_new"))
+                spawn_particle(view_x + 120 + 20, view_y + i + 20, 0, 0, get_asset("spr_danger_new"))
+            end
+        end
+        if (get_var(obj, "y") > view_y + 260) then
+            
+            play_sound(get_asset("snd_wham"), get_var(obj, "x"))
+            play_sound(get_asset("snd_clatter"), get_var(obj, "x"))
 
-    if (get_var(obj, "state") == StarStates.Intro and get_var(obj, "ai_timer") >= 30) then
-        ChangeState(obj, {StarStates.StarSpiral, StarStates.StarSucc, StarStates.StarStorm})
+            add_screenshake(15)
+            local star_amount = 30
+            if (get_global("game_loop") >= 3) then
+                star_amount = 24
+            end
+
+            for i = 0, 350, star_amount do
+                local star_wall = spawn_projectile(get_var(obj, "x"), get_var(obj, "y"), rot_x(i) * 2, rot_y(i) * 2, get_asset("spr_enemy_bullet_dstar"))
+                set_var(star_wall, "ignore_walls", true)
+            end
+            if (hard_mode) then
+                local dopplers = 30
+                local loop_rotation = 15
+
+                if (get_global("game_loop") >= 5) then
+                    dopplers = 20
+                    loop_rotation = 0
+                end
+
+                for i = 0, 350, dopplers do
+                    local star_wall = spawn_projectile(get_var(obj, "x"), get_var(obj, "y"), rot_x(i + loop_rotation), rot_y(i + loop_rotation), get_asset("spr_bullet_dopple_blue"))
+                    set_var(star_wall, "image_angle", call_function("point_direction", {0, 0, get_var(star_wall, "hspeed"), get_var(star_wall, "vspeed")}))
+                    set_var(star_wall, "ignore_walls", true)
+                end
+            end
+        end
+        if (get_var(obj, "ai_timer") == 50) then
+            set_var(obj, "vspeed", 8)
+        end
+        
+        if (get_var(obj, "ai_timer") > 50 and get_var(obj, "ai_timer") < 83) then
+            set_var(obj, "image_angle", get_var(obj, "image_angle") + 10)
+        end
+
+        if (get_var(obj, "ai_timer") >= 83 and get_var(obj, "ai_timer") < 104) then
+            set_var(obj, "vspeed", 0)
+            set_var(obj, "y", view_y + 255)
+        elseif (get_var(obj, "ai_timer") == 105) then
+            set_var(obj, "vspeed", -6)
+            local parti = spawn_particle(get_var(obj, "x"), get_var(obj, "y") - 25, 0, 0, get_asset("spr_dash"))
+            set_var(parti, "image_angle", -90)
+            play_sound(get_asset("snd_explode"), get_var(parti, "x"))
+        elseif (get_var(obj, "ai_timer") > 105 and get_var(obj, "ai_timer") < 135) then
+            set_var(obj, "image_angle", lerp(get_var(obj, "image_angle"), 0, 0.4 * 0.4))
+            set_var(obj, "vspeed", get_var(obj, "vspeed") * 0.9)
+        elseif (get_var(obj, "ai_timer") == 135) then
+            ChangeState(obj, {StarStates.StarSucc, StarStates.StarSpiral})
+        end
     end
 
     if (get_var(obj, "state") == StarStates.StarSucc) then
@@ -251,8 +320,8 @@ function star.Step(obj)
             set_var(obj, "x", get_var(obj, "smash_location") + view_x)
             set_var(obj, "vspeed", 8)
         elseif (get_var(obj, "y") > view_y + 260) then
-            play_sound(get_asset("snd_wham"), get_var(obj, "x"), get_var(obj, "y"))
-            play_sound(get_asset("snd_clatter"), get_var(obj, "x"), get_var(obj, "y"))
+            play_sound(get_asset("snd_wham"), get_var(obj, "x"))
+            play_sound(get_asset("snd_clatter"), get_var(obj, "x"))
 
             add_screenshake(15)
             local star_amount = 30
@@ -294,7 +363,7 @@ function star.Step(obj)
             set_var(parti, "image_angle", -90)
             play_sound(get_asset("snd_explode"), get_var(parti, "x"))
         elseif (get_var(obj, "ai_timer") > 185 and get_var(obj, "ai_timer") < 215) then
-            set_var(obj, "image_angle", lerp(get_var(obj, "image_angle"), 0, 0.35 * 0.35))
+            set_var(obj, "image_angle", lerp(get_var(obj, "image_angle"), 0, 0.4 * 0.4))
             set_var(obj, "vspeed", get_var(obj, "vspeed") * 0.9)
         elseif (get_var(obj, "ai_timer") == 215) then
             ChangeState(obj, {StarStates.StarSucc, StarStates.StarSpiral})
@@ -382,8 +451,6 @@ function star.Step(obj)
     end
 
     if (get_var(obj, "state") == StarStates.Dead) then
-        set_var(obj, "hspeed", 0)
-        set_var(obj, "vspeed", 0)
         set_var(obj, "ai_timer", 0)
     end
     

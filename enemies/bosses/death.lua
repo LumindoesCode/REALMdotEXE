@@ -9,7 +9,7 @@ death_inc = enemy_data("death_incarnate")
 
 death_inc.Boss = true
 function death_inc.ShouldForceBoss()
-    return FORCE_DEATH and (get_global("current_floormap") == get_global("floormap_1"))
+    return FORCE_DEATH
 end
 
 

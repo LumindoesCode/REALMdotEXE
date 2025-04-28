@@ -1,5 +1,5 @@
-require("LuminsHelpers/math")
-require("LuminsHelpers/callbacks")
+require("REALMdotEXE/libraries/math")
+require("REALMdotEXE/libraries/callbacks")
 
 FORCE_DEATH = false --set this to true to get a guaranteed death scout spawn
 FORCE_STAR = false --set this to true to get a guaranteed star boss spawn

@@ -33,9 +33,9 @@ end
 
 function death_inc.Create(obj)
     set_var(obj, "sprite_index", death_inc_hitbox)
-    set_var(obj, "hp", 1500)
-    set_var(obj, "maxhp", 1500)
-    set_var(obj, "hp_damage", 1500)
+    set_var(obj, "hp", 1700)
+    set_var(obj, "maxhp", 1700)
+    set_var(obj, "hp_damage", 1700)
     set_var(obj, "state", "INTRO")
     set_var(obj, "ai_timer", 0)
     set_var(obj, "hspeed_target", 0)

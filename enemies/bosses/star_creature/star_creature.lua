@@ -10,7 +10,7 @@ function star.ShouldForceBoss()
 end
 
 
---star.BossFloor = 2
+star.BossFloor = 2
 
 
 function star.BossIntro(obj)

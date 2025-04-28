@@ -1,11 +1,11 @@
 require("LuminsHelpers/math")
 require("LuminsHelpers/callbacks")
 
+FORCE_DEATH = false --set this to true to get a guaranteed death scout spawn
+FORCE_STAR = false --set this to true to get a guaranteed star boss spawn
+
 debug = global_data()
 
-
-FORCE_DEATH = false --set this to true to get a guaranteed death scout spawn on floor 1
-FORCE_STAR = false --set this to true to get a guaranteed star boss spawn on floor 2
 
 
 function debug.Step()

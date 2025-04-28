@@ -6,7 +6,7 @@ star = enemy_data("star_boss")
 
 star.Boss = true
 function star.ShouldForceBoss()
-    return FORCE_STAR and (get_global("current_floormap") == get_global("floormap_2"))
+    return FORCE_STAR
 end
 
 
@@ -456,6 +456,10 @@ function star.Step(obj)
     
 
     set_var(obj, "ai_timer", get_var(obj, "ai_timer") + 1)
+end
+
+function star.Destroy(obj)
+    
 end
 
 

@@ -1,17 +1,14 @@
 star_sprite = custom_sprite("REALMdotEXE/enemies/bosses/star_creature/star_creature.png", 1, 24, 27, 0)
 star_bg = custom_sprite("REALMdotEXE/enemies/bosses/star_creature/star_bg_part.png", 1, 8, 8, 0)
 
+star_song = custom_music("REALMdotEXE/enemies/bosses/star_creature/Star_Song.ogg", "Star Song")
+
 star = enemy_data("star_boss")
 
 
 star.Boss = true
-function star.ShouldForceBoss()
-    return FORCE_STAR
-end
-
 
 star.BossFloor = 2
-
 
 function star.BossIntro(obj)
     init_var(obj, "boss_timer", 0)
@@ -22,7 +19,7 @@ function star.BossIntro(obj)
         boss_message(120, 80, "wisp")
     end
     if (get_var(obj, "boss_timer") == 85) then
-        play_music(get_asset("mus_the_4th"))
+        play_music(star_song)
     end
     set_var(obj, "boss_timer", get_var(obj, "boss_timer") + 1)
 end
@@ -42,8 +39,8 @@ end
 StarStates = {
     Intro = "INTRO",
     StarSucc = "STARSUCC", --Attacks similarly to Database's rings attack, but moves up and down while doing it
-    StarStorm = "STARSTORM",
-    StarSpiral = "STARSPIRAL",
+    StarStorm = "STARSTORM", --rises up like a rocket, before smashing back down
+    StarSpiral = "STARSPIRAL", --spews a spiral of bullets
     Dead = "DED"
 }
 
@@ -59,7 +56,7 @@ function star.Draw(obj)
     local star_placer = math.random(0, 240)
     local star_placer_y = math.random(0, 360)
 
-    if (math.fmod(get_var(obj, "ai_timer"), 15) == 0) then
+    if (math.fmod(get_var(obj, "ai_timer"), 10) == 0) then
         local star_parti = spawn_particle(view_x + star_placer, view_y + star_placer_y, 0, 0, star_bg)
 
         set_var(star_parti, "image_alpha", 0.4)
@@ -290,14 +287,16 @@ function star.Step(obj)
 
             if (math.fmod(get_var(obj, "ai_timer"), 10) == 0) then
                 set_var(obj, "hspeed", 0)
-                local bul = spawn_projectile(get_var(obj, "x"), get_var(obj, "y"), rot_x(star_scatter), rot_y(star_scatter), get_asset("spr_bullet_coil"))
-                if hard_mode then
-                    local speed_randomizer = math.random(-1, 1)
-                    spawn_projectile(get_var(obj, "x"), get_var(obj, "y"), 1, speed_randomizer, get_asset("spr_tribullet"))
-                    spawn_projectile(get_var(obj, "x"), get_var(obj, "y"), -1, speed_randomizer, get_asset("spr_tribullet"))
+                if (get_var(obj, "y") >= view_y) then
+                    local bul = spawn_projectile(get_var(obj, "x"), get_var(obj, "y"), rot_x(star_scatter), rot_y(star_scatter), get_asset("spr_bullet_coil"))
+                    if hard_mode then
+                        local speed_randomizer = math.random(-1, 1)
+                        spawn_projectile(get_var(obj, "x"), get_var(obj, "y"), 1, speed_randomizer, get_asset("spr_tribullet"))
+                        spawn_projectile(get_var(obj, "x"), get_var(obj, "y"), -1, speed_randomizer, get_asset("spr_tribullet"))
+                    end
+                    set_var(bul, "ignore_walls", true)
                 end
                 set_var(obj, "vspeed", get_var(obj, "vspeed") - 0.5)
-                set_var(bul, "ignore_walls", true)
             end
         end
 

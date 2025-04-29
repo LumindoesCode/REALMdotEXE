@@ -8,13 +8,8 @@ sploding_eyelet_sprite = custom_sprite("REALMdotEXE/enemies/bosses/DI_Eyelet-She
 death_inc = enemy_data("death_incarnate")
 
 death_inc.Boss = true
-function death_inc.ShouldForceBoss()
-    return FORCE_DEATH
-end
-
 
 death_inc.BossFloor = 1
-
 
 function death_inc.BossIntro(obj)
     init_var(obj, "boss_timer", 0)

@@ -392,11 +392,15 @@ function star.Step(obj)
             if (get_var(obj, "inverted_spin")) then
                 set_var(obj, "vspeed", -math.sin(get_var(obj, "siner") / 25))
                 set_var(obj, "hspeed", -math.cos(get_var(obj, "siner") / 25))
-                set_var(obj, "image_angle", get_var(obj, "image_angle") - 2)
+                set_var(obj, "image_angle", get_var(obj, "image_angle") - 5)
             else
                 set_var(obj, "vspeed", math.sin(get_var(obj, "siner") / 25))
                 set_var(obj, "hspeed", -math.cos(get_var(obj, "siner") / 25))
-                set_var(obj, "image_angle", get_var(obj, "image_angle") + 2)
+                set_var(obj, "image_angle", get_var(obj, "image_angle") + 5)
+            end
+
+            if (get_var(obj, "image_angle") >= 360 or get_var(obj, "image_angle") <= -360) then
+                set_var(obj, "image_angle", 0)
             end
 
 

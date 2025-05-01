@@ -49,8 +49,16 @@ end
 EntropyStates = {
     Intro = "INTRO",
     SideDecay = "SIDEDECAY", --Entropy creates decays, and they spew bullets as they move away, firing bullets itself
-    WavyThorns = "WAVYTHORNS" --Entropy creates two decays that move left and right, spewing bullets downwards that lean left or right, hardmode gains two more on the side
+    WavyThorns = "WAVYTHORNS", --Entropy creates two decays that move left and right, spewing bullets downwards that lean left or right
+    ThornSlash = "THORNSLASH" --Entropy creates several large slashes of bullets, similar to Charlie's attack (lol)
 }
+
+
+function ChangeState(obj, states)
+    set_var(obj, "ai_timer", 0)
+    local state = states[math.random(1, #states)]
+    set_var(obj, "state", state)
+end
 
 
 function entropy.Draw(obj)
@@ -84,6 +92,28 @@ function entropy.Draw(obj)
         if (get_var(obj, "spike_spin_axis") == 360) then
             set_var(obj, "spike_spin_axis", 0)
         end
+
+
+    elseif (get_var(obj, "state") == EntropyStates.ThornSlash) then
+
+        set_var(obj, "spike_spin", get_var(obj, "spike_spin") + 2)
+        set_var(obj, "spike_spin_axis", get_var(obj, "spike_spin_axis") + 2)
+
+
+        if (get_var(obj, "spike_spin") == 360) then
+            set_var(obj, "spike_spin", 0)
+        end
+        if (get_var(obj, "spike_spin_axis") == 360) then
+            set_var(obj, "spike_spin_axis", 0)
+        end
+
+
+        if (math.fmod(get_var(obj, "ai_timer"), 35) == 0) then
+            set_var(obj, "spike_distance", 35)
+        end
+
+        set_var(obj, "spike_distance", lerp(get_var(obj, "spike_distance"), 25, 0.05))
+
     else
         if (get_var(obj, "ai_timer") < 10) then
             set_var(obj, "spike_distance", lerp(get_var(obj, "spike_distance"), 25, 0.15))
@@ -100,7 +130,6 @@ function entropy.Draw(obj)
         if (get_var(obj, "spike_spin_axis") == 360) then
             set_var(obj, "spike_spin_axis", 0)
         end
-
 
     end
 end
@@ -142,11 +171,9 @@ function entropy.Step(obj)
 
     if (get_var(obj, "state") == EntropyStates.Intro) then
         set_var(obj, "vspeed", lerp(get_var(obj, "y"), view_y + 120, 0.25) - get_var(obj, "y"))
-        print(get_var(obj, "ai_timer"))
     end
     if (get_var(obj, "ai_timer") >= 30 and get_var(obj, "state") == EntropyStates.Intro) then
-        set_var(obj, "ai_timer", 0)
-        set_var(obj, "state", EntropyStates.SideDecay)
+        ChangeState(obj, {EntropyStates.ThornSlash})
     end
 
     if (get_var(obj, "state") == EntropyStates.SideDecay) then
@@ -397,7 +424,89 @@ function entropy.Step(obj)
             set_var(obj, "vspeed", get_var(obj, "vspeed") * 0.7)
         elseif (get_var(obj, "ai_timer") == 305) then
             set_var(obj, "ai_timer", 0)
-            set_var(obj, "state", EntropyStates.SideDecay)
+            set_var(obj, "state", EntropyStates.ThornSlash)
+        end
+    end
+
+    if (get_var(obj, "state") == EntropyStates.ThornSlash) then
+
+        local down_driller = function(v)
+            init_var(v, "drill_timer", 0)
+
+            if (get_var(v, "drill_timer") == 30) then
+                add_screenshake(3)
+                play_sound(get_asset("snd_buzzap"), get_var(v, "x"))
+                set_var(v, "vspeed", 15)
+            end
+
+            if (get_var(v, "drill_timer") > 30 and get_var(v, "drill_timer") <= 55) then
+                set_var(v, "vspeed", get_var(v, "vspeed") * 0.8)
+            elseif (get_var(v, "drill_timer") > 55) then
+                set_var(v, "vspeed", lerp(get_var(v, "vspeed"), 2, 0.1))
+            end
+
+            set_var(v, "drill_timer", get_var(v, "drill_timer") + 1)
+        end
+
+
+        if (get_var(obj, "ai_timer") == 0) then
+            set_var(obj, "siner", 0)
+            play_sound(get_asset("snd_gather"), get_var(obj, "x"))
+        elseif (get_var(obj, "ai_timer") < 30) then
+            set_var(obj, "hspeed", lerp(get_var(obj, "x"), view_x + 60, 0.05) - get_var(obj, "x"))
+            set_var(obj, "vspeed", lerp(get_var(obj, "y"), view_y + 120, 0.05) - get_var(obj, "y"))
+        end
+
+        if (get_var(obj, "ai_timer") >= 30 and get_var(obj, "ai_timer") < 450) then
+            set_var(obj, "hspeed", -math.cos(get_var(obj, "siner") / 150) * 1.5)
+            set_var(obj, "vspeed", math.sin(get_var(obj, "siner") / 150))
+
+            init_var(obj, "delayer", math.random(0, 359))
+            init_var(obj, "spawn_things", 0)
+
+            if (math.fmod(get_var(obj, "ai_timer"), 35) == 0) then
+                set_var(obj, "spawn_things", 5)
+                set_var(obj, "delayer", get_var(obj, "delayer") + 30)
+            end
+
+            if (math.fmod(get_var(obj, "ai_timer"), 60) == 0) then
+                local random_spot = math.random(40, 200)
+
+                local driller = spawn_projectile(view_x + random_spot, view_y, 0, 0, entropy_spike)
+
+                spawn_particle(get_var(driller, "x"), get_var(driller, "y") + 80, 0, 0, get_asset("spr_danger_new"))
+
+                set_var(driller, "ignore_walls", true)
+                set_var(driller, "image_angle", 180)
+                LumHelp.AddCallback(driller, down_driller)
+            end
+            
+            if (math.fmod(get_var(obj, "ai_timer"), 5) == 0 and get_var(obj, "spawn_things") > 0) then
+                play_sound_ext(get_asset("snd_thunk"), 1.5, 0.35, get_var(obj, "x"))
+                local bullet_amount = 180
+
+                if hard_mode then
+                    bullet_amount = 120
+                end
+
+                for i = 0, 350, bullet_amount do
+                    local thorns = spawn_projectile(get_var(obj, "x"), get_var(obj, "y"), rot_x(get_var(obj, "delayer") + i) * 2, rot_y(get_var(obj, "delayer") + i) * 2, get_asset("spr_bullet_generic_nega"))
+        
+                    set_var(thorns, "image_angle", call_function("point_direction", {0, 0, get_var(thorns, "hspeed"), get_var(thorns, "vspeed")}))
+                    set_var(thorns, "ignore_walls", true)
+    
+                end
+                set_var(obj, "delayer", get_var(obj, "delayer") + 20)
+                set_var(obj, "spawn_things", get_var(obj, "spawn_things") - 1)
+            end
+        end
+
+        if (get_var(obj, 'ai_timer') >= 450 and get_var(obj, "ai_timer") < 480) then
+            set_var(obj, "hspeed", lerp(get_var(obj, "x"), view_x + 120, 0.05) - get_var(obj, "x"))
+            set_var(obj, "vspeed", lerp(get_var(obj, "y"), view_y + 120, 0.05) - get_var(obj, "y"))
+        end
+        if (get_var(obj, "ai_timer") >= 480) then
+            ChangeState(obj, {EntropyStates.SideDecay, EntropyStates.WavyThorns})
         end
     end
 

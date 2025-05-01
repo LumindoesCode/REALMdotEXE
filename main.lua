@@ -26,6 +26,7 @@ function mod_load()
     --require("REALMdotEXE/enemies/bosses/death")
     --require("REALMdotEXE/enemies/bosses/star_creature/star_creature")
     require("REALMdotEXE/enemies/bosses/entropy/entropy")
+    --require("REALMdotEXE/enemies/bosses/lucid_dream_test")
 end
 
 

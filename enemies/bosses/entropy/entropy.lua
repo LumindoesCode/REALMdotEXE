@@ -95,7 +95,12 @@ function entropy.Draw(obj)
 
 
     elseif (get_var(obj, "state") == EntropyStates.ThornSlash) then
-
+        if (get_var(obj, "ai_timer") < 10) then
+            set_var(obj, "spike_distance", lerp(get_var(obj, "spike_distance"), 25, 0.15))
+            set_var(obj, "spike_spin", lerp(get_var(obj, "spike_spin"), 30, 0.35))
+            set_var(obj, "spike_spin_axis", lerp(get_var(obj, "spike_spin_axis"), 30, 0.35))
+        end
+        
         set_var(obj, "spike_spin", get_var(obj, "spike_spin") + 2)
         set_var(obj, "spike_spin_axis", get_var(obj, "spike_spin_axis") + 2)
 
@@ -173,7 +178,7 @@ function entropy.Step(obj)
         set_var(obj, "vspeed", lerp(get_var(obj, "y"), view_y + 120, 0.25) - get_var(obj, "y"))
     end
     if (get_var(obj, "ai_timer") >= 30 and get_var(obj, "state") == EntropyStates.Intro) then
-        ChangeState(obj, {EntropyStates.ThornSlash})
+        ChangeState(obj, {EntropyStates.ThornSlash, EntropyStates.SideDecay, EntropyStates.WavyThorns})
     end
 
     if (get_var(obj, "state") == EntropyStates.SideDecay) then
@@ -252,6 +257,8 @@ function entropy.Step(obj)
 
             set_var(decay_spawner, "ignore_walls", true)
             set_var(decay_spawner_2, "ignore_walls", true)
+            set_var(decay_spawner, "image_angle", math.random(0, 359))
+            set_var(decay_spawner_2, "image_angle", math.random(0, 359))
 
             LumHelp.AddCallback(decay_spawner, decay_rotator)
             LumHelp.AddCallback(decay_spawner_2, decay_rotator)
@@ -315,8 +322,7 @@ function entropy.Step(obj)
             set_var(obj, "hspeed", get_var(obj, "hspeed") * 0.7)
             set_var(obj, "vspeed", get_var(obj, "vspeed") * 0.7)
         elseif (get_var(obj, "ai_timer") == 315) then
-            set_var(obj, "ai_timer", 0)
-            set_var(obj, "state", EntropyStates.WavyThorns)
+            ChangeState(obj, {EntropyStates.WavyThorns, EntropyStates.ThornSlash})
         end
 
     end
@@ -410,6 +416,9 @@ function entropy.Step(obj)
             set_var(wavythorner, "ignore_walls", true)
             set_var(wavythorner2, "ignore_walls", true)
 
+            set_var(wavythorner, "image_angle", math.random(0, 359))
+            set_var(wavythorner2, "image_angle", math.random(0, 359))
+
 
             LumHelp.AddCallback(wavythorner, decay_rotator)
             LumHelp.AddCallback(wavythorner2, decay_rotator)
@@ -423,17 +432,26 @@ function entropy.Step(obj)
             set_var(obj, "hspeed", get_var(obj, "hspeed") * 0.7)
             set_var(obj, "vspeed", get_var(obj, "vspeed") * 0.7)
         elseif (get_var(obj, "ai_timer") == 305) then
-            set_var(obj, "ai_timer", 0)
-            set_var(obj, "state", EntropyStates.ThornSlash)
+            ChangeState(obj, {EntropyStates.ThornSlash, EntropyStates.SideDecay})
         end
     end
 
     if (get_var(obj, "state") == EntropyStates.ThornSlash) then
 
+        local decay_jumpscare = function(v)
+            set_var(v, "vspeed", get_var(v, 'vspeed') - 0.25)
+        end
+
         local down_driller = function(v)
             init_var(v, "drill_timer", 0)
 
             if (get_var(v, "drill_timer") == 30) then
+                local decay_parti = spawn_particle(get_var(v, "x"), get_var(v, "y") + 30, 0, 6, decay_sprite)
+                set_var(decay_parti, "image_angle", math.random(0, 359))
+
+                LumHelp.AddCallback(decay_parti, decay_jumpscare)
+                LumHelp.AddCallback(decay_parti, decay_rotator)
+
                 add_screenshake(3)
                 play_sound(get_asset("snd_buzzap"), get_var(v, "x"))
                 set_var(v, "vspeed", 15)

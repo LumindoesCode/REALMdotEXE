@@ -15,9 +15,7 @@ entropy = enemy_data("hopeless_boss")
 entropy.Boss = true
 
 
-function entropy.ShouldForceBoss()
-    return true
-end
+entropy.BossFloor = 3
 
 
 function entropy.BossIntro(obj)
@@ -26,10 +24,8 @@ function entropy.BossIntro(obj)
         play_music(get_asset("mus_silencio"))
         boss_message(120, 80, "entropy")
     end
-    if (get_var(obj, "boss_timer") == 90) then
+    if (get_var(obj, "boss_timer") == 1) then
         spawn_enemy(view_x + 120, view_y, "hopeless_boss")
-        play_music(wrong_turn)
-        play_sound(get_asset("snd_mech"), get_var(obj, "x"))
     end
     set_var(obj, "boss_timer", get_var(obj, "boss_timer") + 1)
 end
@@ -37,9 +33,9 @@ end
 
 function entropy.Create(obj)
     set_var(obj, "sprite_index", entropy_body)
-    set_var(obj, "hp", 250)
-    set_var(obj, "maxhp", 250)
-    set_var(obj, "hp_damage", 250)
+    set_var(obj, "hp", 3500)
+    set_var(obj, "maxhp", 3500)
+    set_var(obj, "hp_damage", 3500)
     set_var(obj, "state", "INTRO")
     set_var(obj, "ai_timer", 0)
     init_var(obj, "siner", 0)
@@ -52,7 +48,8 @@ EntropyStates = {
     WavyThorns = "WAVYTHORNS", --Entropy creates two decays that move left and right, spewing bullets downwards that lean left or right
     ThornSlash = "THORNSLASH", --Entropy creates several large slashes of bullets, similar to Charlie's attack (lol)
     RingleaderSpeen = "RINGLEADERSPEEN", --Entropy creates decays in a ring around itself, before it wildly spins them around until they detonate
-    DecayTornado = "DECAYTORNADO" --Entropy creates two Decays that spin around itself, both spewing bullets upwards that fall down
+    DecayTornado = "DECAYTORNADO", --Entropy creates two Decays that spin around itself, both spewing bullets upwards that fall down
+    Dead = "DED"
 }
 
 
@@ -64,6 +61,7 @@ end
 
 
 function entropy.Draw(obj)
+
     
     local dir = get_direction(get_var(obj, "x"), get_var(obj, "y"), player_x, player_y)
     init_var(obj, "spike_spin", 30)
@@ -75,6 +73,19 @@ function entropy.Draw(obj)
         draw_sprite_ext(get_var(obj, "x") + rot_x(i + get_var(obj, "spike_spin")) * get_var(obj, "spike_distance"), get_var(obj, "y") + rot_y(i + get_var(obj, "spike_spin")) * get_var(obj, "spike_distance"), entropy_spike, 0, i - 90 + get_var(obj, "spike_spin_axis"), 1, 1, create_color(255, 255, 255), 1)
 
     end
+
+    init_var(obj, "sizer", 0)
+    if (get_var(obj, "state") == EntropyStates.Intro and get_var(obj, "ai_timer") < 240) then
+
+        draw_sprite_ext(view_x + 120, view_y + 120, entropy_body, 0, 0, get_var(obj, "sizer"), get_var(obj, "sizer"), create_color(255, 255, 255), 1)
+
+        set_var(obj, "sizer", get_var(obj, "sizer") + 0.005)
+    elseif (get_var(obj, "state") == EntropyStates.Intro) then
+        set_var(obj, "spike_spin", get_var(obj, 'spike_spin') + 4)
+        set_var(obj, "spike_spin_axis", get_var(obj, 'spike_spin_axis') + 8)
+        set_var(obj, "spike_distance", 50)
+    end
+
     set_var(obj, "siner", get_var(obj, "siner") + 1)
     draw_sprite_ext(get_var(obj, "x"), get_var(obj, "y"), entropy_body, 0, 0, 1, 1, create_color(255, 255, 255), 1)
 
@@ -165,22 +176,66 @@ function entropy.Step(obj)
     end
 
     if (get_var(obj, "behavior") == "dead") then
-        init_var(obj, "dead_timer", 0)
-        if (get_var(obj, "dead_timer") == 1) then
-            clear_bullets(get_var(obj, "x"), get_var(obj, "y"))
-        end
-        if (get_var(obj, "dead_timer") == 2) then
-            call_function("instance_destroy", {obj})
-        end
-
-        set_var(obj, "dead_timer", get_var(obj, "dead_timer") + 1)
+        ChangeState(obj, {EntropyStates.Dead})
     end
 
     if (get_var(obj, "state") == EntropyStates.Intro) then
-        set_var(obj, "vspeed", lerp(get_var(obj, "y"), view_y + 120, 0.25) - get_var(obj, "y"))
-    end
-    if (get_var(obj, "ai_timer") >= 30 and get_var(obj, "state") == EntropyStates.Intro) then
-        ChangeState(obj, {EntropyStates.DecayTornado})
+        local decayticle_deleter = function(v)
+            init_var(v, "waiter", 0)
+
+            if (get_var(v, "x") >= view_x + 115 and get_var(v, "x") <= view_x + 125) then
+                play_sound(get_asset("snd_gather"), view_x + 120)
+                set_var(v, "waiter", get_var(v, "waiter") + 1)
+            end
+
+            if (get_var(v, "waiter") == 1) then
+                call_function("instance_destroy", {v})
+            end
+            
+        end
+
+        if (math.fmod(get_var(obj, "ai_timer"), 25) == 0 and get_var(obj, "ai_timer") < 240) then
+            local random_y = math.random(0, 240)
+
+            local random_x = math.random(0, 1)
+
+            if random_x == 0 then
+                random_x = 0
+            end
+            if random_x == 1 then
+                random_x = 280
+            end
+
+            local decayticle = spawn_projectile(view_x - 20 + random_x, view_y + 60 + random_y, 0, 0, decay_sprite)
+            
+            local decay_dir = get_direction(get_var(decayticle, "x"), get_var(decayticle, "y"), view_x + 120, view_y + 120)
+
+            set_var(decayticle, "damage", 0)
+            set_var(decayticle, "ignore_walls", true)
+
+            
+            set_var(decayticle, 'hspeed', decay_dir.x * 2)
+            set_var(decayticle, 'vspeed', decay_dir.y * 2)
+            set_var(decayticle, "image_angle", math.random(0, 359))
+
+            LumHelp.AddCallback(decayticle, decay_rotator)
+            LumHelp.AddCallback(decayticle, decayticle_deleter)
+        end
+
+        if (get_var(obj, "ai_timer") == 240) then
+            play_music(wrong_turn)
+            clear_bullets(view_x + 120, view_y + 120)
+            play_sound(get_asset("snd_roar"), get_var(obj, "x"))
+        end
+
+        if (get_var(obj, "ai_timer") >= 240 and get_var(obj, "ai_timer") < 300) then
+            set_var(obj, 'x', view_x + 120)
+            set_var(obj, 'y', view_y + 120)
+            add_screenshake(10)
+        end
+        if (get_var(obj, "ai_timer") >= 300) then
+            ChangeState(obj, {EntropyStates.DecayTornado, EntropyStates.RingleaderSpeen, EntropyStates.SideDecay, EntropyStates.ThornSlash, EntropyStates.WavyThorns})
+        end
     end
 
     if (get_var(obj, "state") == EntropyStates.SideDecay) then
@@ -519,8 +574,10 @@ function entropy.Step(obj)
             if (math.fmod(get_var(obj, "ai_timer"), 5) == 0 and get_var(obj, "spawn_things") > 0) then
                 play_sound_ext(get_asset("snd_thunk"), 1.5, 0.35, get_var(obj, "x"))
                 local bullet_amount = 180
+                local delay_amount = 20
 
                 if hard_mode then
+                    delay_amount = 25
                     bullet_amount = 120
                 end
 
@@ -531,7 +588,7 @@ function entropy.Step(obj)
                     set_var(thorns, "ignore_walls", true)
     
                 end
-                set_var(obj, "delayer", get_var(obj, "delayer") + 20)
+                set_var(obj, "delayer", get_var(obj, "delayer") + delay_amount)
                 set_var(obj, "spawn_things", get_var(obj, "spawn_things") - 1)
             end
         end
@@ -643,10 +700,10 @@ function entropy.Step(obj)
 
         local decay_twins_bullets = function(v)
             init_var(v, "spew_timer", 0)
-            local random_speed = math.random(-2, 2)
+            local random_speed = math.random(-1, 1)
             local time_to_spew = 20
             if hard_mode then
-                time_to_spew = 15
+                time_to_spew = 20
             end
 
             if (math.fmod(get_var(v, "spew_timer"), time_to_spew) == 0 and get_var(v, "x") < view_x + 240 and get_var(v, "x") > view_x) then
@@ -698,7 +755,12 @@ function entropy.Step(obj)
 
         if (get_var(obj, "ai_timer") == 20) then
             play_sound(get_asset("snd_heartbeat"), get_var(obj, "x"))
-            for i = 0, 350, 180 do
+            local decay_amount = 180
+            if hard_mode then
+                decay_amount = 120
+            end
+
+            for i = 0, 350, decay_amount do
                 local decay_twins = spawn_projectile(get_var(obj, "x"), get_var(obj, "y"), 0, -2, decay_sprite)
                 init_var(decay_twins, "spin_offset", i)
                 
@@ -714,8 +776,12 @@ function entropy.Step(obj)
 
         if (math.fmod(get_var(obj, "ai_timer"), 120) == 0 and get_var(obj, "ai_timer") >= 20 and get_var(obj, "ai_timer") < 320) then
 
+            local decay_amount = 180
+            if hard_mode then
+                decay_amount = 120
+            end
             play_sound(get_asset("snd_heartbeat"), get_var(obj, "x"))
-            for i = 0, 350, 180 do
+            for i = 0, 350, decay_amount do
                 local decay_twins = spawn_projectile(get_var(obj, "x"), get_var(obj, "y"), 0, -2, decay_sprite)
                 init_var(decay_twins, "spin_offset", i)
                 
@@ -740,6 +806,50 @@ function entropy.Step(obj)
         if (get_var(obj, "ai_timer") == 340) then
             ChangeState(obj, {EntropyStates.SideDecay, EntropyStates.ThornSlash, EntropyStates.WavyThorns})
         end
+    end
+
+    if (get_var(obj, "state") == EntropyStates.Dead) then
+        init_var(obj, "dead_timer", 0)
+
+        if (get_var(obj, "dead_timer") <= 1) then
+            clear_bullets(get_var(obj, "x"), get_var(obj, "y"))
+        end
+
+        if (get_var(obj, "dead_timer") == 1) then
+            play_sound(get_asset("snd_heavy_hit"), get_var(obj, "x"))
+        end
+
+        if (get_var(obj, "dead_timer") < 10) then
+            set_var(obj, "hspeed", get_var(obj, "hspeed") * 0.9)
+            set_var(obj, "vspeed", get_var(obj, "vspeed") * 0.9)
+        end
+
+        if (get_var(obj, "dead_timer") >= 10 and get_var(obj, "dead_timer") < 60) then
+            if (math.fmod(get_var(obj, "dead_timer"), 5) == 0) then
+                add_screenshake(5)
+                play_sound(get_asset("snd_thunk"), get_var(obj, "x"))
+                local random_speed = math.random(0, 359)
+
+                local death_decay = spawn_projectile(get_var(obj, "x"), get_var(obj, "y"), rot_x(random_speed) * 3, rot_y(random_speed) * 3, decay_sprite)
+
+                set_var(death_decay, "damage", 0)
+                set_var(death_decay, "ignore_walls", true)
+                set_var(death_decay, "image_angle", math.random(0, 359))
+
+                LumHelp.AddCallback(death_decay, decay_rotator)
+            end
+        end
+
+        if (get_var(obj, "dead_timer") == 60) then
+            play_sound(get_asset("snd_boom"), get_var(obj, "x"))
+            add_screenshake(15)
+            clear_bullets(get_var(obj, "x"), get_var(obj, "y"))
+        end
+        if (get_var(obj, "dead_timer") == 61) then
+            call_function("instance_destroy", {obj})
+        end
+
+        set_var(obj, "dead_timer", get_var(obj, "dead_timer") + 1)
     end
 
 

@@ -319,6 +319,8 @@ function entropy.Step(obj)
             set_var(decay_spawner_2, "ignore_walls", true)
             set_var(decay_spawner, "image_angle", math.random(0, 359))
             set_var(decay_spawner_2, "image_angle", math.random(0, 359))
+            set_var(decay_spawner, "nobreak", true)
+            set_var(decay_spawner_2, "nobreak", true)
 
             LumHelp.AddCallback(decay_spawner, decay_rotator)
             LumHelp.AddCallback(decay_spawner_2, decay_rotator)
@@ -482,6 +484,9 @@ function entropy.Step(obj)
             set_var(wavythorner, "image_angle", math.random(0, 359))
             set_var(wavythorner2, "image_angle", math.random(0, 359))
 
+            set_var(wavythorner, "nobreak", true)
+            set_var(wavythorner2, "nobreak", true)
+
 
             LumHelp.AddCallback(wavythorner, decay_rotator)
             LumHelp.AddCallback(wavythorner2, decay_rotator)
@@ -565,6 +570,7 @@ function entropy.Step(obj)
 
                 spawn_particle(get_var(driller, "x"), get_var(driller, "y") + 80, 0, 0, get_asset("spr_danger_new"))
 
+                set_var(driller, "nobreak", true)
                 set_var(driller, "swattable", false)
                 set_var(driller, "ignore_walls", true)
                 set_var(driller, "image_angle", 180)
@@ -766,6 +772,7 @@ function entropy.Step(obj)
                 
                 set_var(decay_twins, "ignore_walls", true)
                 set_var(decay_twins, "image_angle", math.random(0, 359))
+                set_var(decay_twins, "nobreak", true)
 
                 LumHelp.AddCallback(decay_twins, decay_rotator)
                 LumHelp.AddCallback(decay_twins, decay_twins_spewer)
@@ -787,6 +794,7 @@ function entropy.Step(obj)
                 
                 set_var(decay_twins, "ignore_walls", true)
                 set_var(decay_twins, "image_angle", math.random(0, 359))
+                set_var(decay_twins, "nobreak", true)
 
                 LumHelp.AddCallback(decay_twins, decay_rotator)
                 LumHelp.AddCallback(decay_twins, decay_twins_spewer)

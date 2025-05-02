@@ -7,7 +7,7 @@ debug = global_data()
 
 function debug.Step()
     if (call_function("keyboard_check_pressed", {call_function("ord", {"R"})}) == 1) then
-        spawn_boss_intro(view_x + 120, view_y + 120, "hopeless_boss")
+        --spawn_boss_intro(view_x + 120, view_y + 120, "hopeless_boss")
     end
     
     if (call_function("keyboard_check_pressed", {call_function("ord", {"P"})}) == 1) then

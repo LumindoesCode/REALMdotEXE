@@ -10,6 +10,11 @@ star.Boss = true
 
 star.BossFloor = 2
 
+function star.ShouldForceBoss()
+    return FORCE_STAR and (get_global("current_floormap") == get_global("floormap_2"))
+end
+
+
 function star.BossIntro(obj)
     init_var(obj, "boss_timer", 0)
     if (get_var(obj, "boss_timer") == 0) then
@@ -66,11 +71,13 @@ function star.Draw(obj)
             set_var(v, "image_alpha", get_var(v, "image_alpha") - 0.01)
             set_var(v, "image_xscale", get_var(v, "image_xscale") - 0.02)
             set_var(v, "image_yscale", get_var(v, "image_yscale") - 0.02)
-
+                
             if (get_var(v, "image_alpha") <= 0) then
+                set_var(v, "image_alpha", 0)
                 call_function("instance_destroy", {v})
             end
         end
+
 
         LumHelp.AddCallback(star_parti, bg_fader)
     end
@@ -90,10 +97,13 @@ function star.Draw(obj)
             set_var(v, "image_alpha", get_var(v, "image_alpha") - 0.01)
             set_var(v, "image_xscale", get_var(v, "image_xscale") - 0.01)
             set_var(v, "image_yscale", get_var(v, "image_yscale") - 0.01)
+        
             if (get_var(v, "image_alpha") <= 0) then
+                set_var(v, "image_alpha", 0)
                 call_function("instance_destroy", {v})
             end
         end
+
         LumHelp.AddCallback(sp, fader)
     end
 end
@@ -131,10 +141,9 @@ function star.Step(obj)
         if (get_var(obj, "dead_timer") == 60) then
             play_sound(get_asset("snd_boom"), view_x + 120)
             add_screenshake(10)
-
-        elseif (get_var(obj, "dead_timer") == 61) then
             call_function("instance_destroy", {obj})
         end
+        
         set_var(obj, "dead_timer", get_var(obj, "dead_timer") + 1)
     end
 

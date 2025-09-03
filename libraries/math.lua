@@ -1,5 +1,13 @@
 function lerp(a, b, x) return a + ((b - a) * x) end
 
+function approach(a, b, x)
+  if (a < b) then
+    return math.min(a + x, b)
+  else
+    return math.max(a - x, b)
+  end
+end
+
 function rand_from(a, b)
   local diff = b - a
   return a + math.random(diff)
@@ -24,4 +32,12 @@ end
 
 function sign(number)
   return number > 0 and 1 or (number == 0 and 0 or -1)
+end
+
+function shuffle(tbl)
+  for i = #tbl, 2, -1 do
+    local j = math.random(i)
+    tbl[i], tbl[j] = tbl[j], tbl[i]
+  end
+  return tbl
 end

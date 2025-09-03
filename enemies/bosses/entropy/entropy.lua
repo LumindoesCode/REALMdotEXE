@@ -18,6 +18,11 @@ entropy.Boss = true
 entropy.BossFloor = 3
 
 
+function entropy.ShouldForceBoss()
+    return FORCE_ENTROPY and (get_global("current_floormap") == get_global("floormap_3"))
+end
+
+
 function entropy.BossIntro(obj)
     init_var(obj, "boss_timer", 0)
     if (get_var(obj, "boss_timer") == 1) then
@@ -38,6 +43,7 @@ function entropy.Create(obj)
     set_var(obj, "hp_damage", 3500)
     set_var(obj, "state", "INTRO")
     set_var(obj, "ai_timer", 0)
+    set_var(obj, "debris_score", 1500)
     init_var(obj, "siner", 0)
 end
 
@@ -186,9 +192,6 @@ function entropy.Step(obj)
             if (get_var(v, "x") >= view_x + 115 and get_var(v, "x") <= view_x + 125) then
                 play_sound(get_asset("snd_gather"), view_x + 120)
                 set_var(v, "waiter", get_var(v, "waiter") + 1)
-            end
-
-            if (get_var(v, "waiter") == 1) then
                 call_function("instance_destroy", {v})
             end
             
@@ -852,8 +855,6 @@ function entropy.Step(obj)
             play_sound(get_asset("snd_boom"), get_var(obj, "x"))
             add_screenshake(15)
             clear_bullets(get_var(obj, "x"), get_var(obj, "y"))
-        end
-        if (get_var(obj, "dead_timer") == 61) then
             call_function("instance_destroy", {obj})
         end
 

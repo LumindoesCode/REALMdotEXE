@@ -11,6 +11,11 @@ death_inc.Boss = true
 
 death_inc.BossFloor = 1
 
+function death_inc.ShouldForceBoss()
+    return FORCE_DEATH and (get_global("current_floormap") == get_global("floormap_1"))
+end
+
+
 function death_inc.BossIntro(obj)
     init_var(obj, "boss_timer", 0)
     if (get_var(obj, "boss_timer") == 60) then

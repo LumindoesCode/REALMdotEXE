@@ -12,6 +12,7 @@ function fake_dream.Create(obj)
     set_var(obj, "hp_damage", 15)
     set_var(obj, "state", "CHOICE")
     set_var(obj, "ai_timer", 0)
+    set_var(obj, "skiphpbar", true)
 end
 
 
@@ -47,14 +48,14 @@ function fake_dream.Step(obj)
 
     if (get_var(obj, "state") == "CHOICE") then
         
-        if (player_x < view_x + 60 + 5 or player_x > view_x + 60 - 5 and player_y < view_y + 120 - 5 or player_y > view_y + 120 + 5 and not get_var(obj, "state") == "FIGHT") then
+        if (player_x < view_x + 60 + 5 or player_x > view_x + 60 - 5 and player_y < view_y + 120 + 5 or player_y > view_y + 120 - 5 and not get_var(obj, "state") == "FIGHT") then
             set_var(obj, "state", "FIGHT")
-            print(player_x)
-            print(view_x)
+            print("death")
             spawn_boss_intro(view_x + 120, view_y + 120, "death_incarnate")
         end
         if (player_x > view_x + 180 + 5 or player_x < view_x + 180 - 5 and player_y < view_y + 120 - 5 or player_y > view_y + 120 + 5 and not get_var(obj, "state") == "FIGHT") then
             set_var(obj, "state", "FIGHT")
+            print("wisp")
             spawn_boss_intro(view_x + 120, view_y + 120, "star_boss")
         end
     end

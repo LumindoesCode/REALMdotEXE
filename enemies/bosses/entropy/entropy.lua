@@ -27,10 +27,9 @@ function entropy.BossIntro(obj)
     init_var(obj, "boss_timer", 0)
     if (get_var(obj, "boss_timer") == 1) then
         play_music(get_asset("mus_silencio"))
-        boss_message(120, 80, "entropy")
     end
     if (get_var(obj, "boss_timer") == 1) then
-        spawn_enemy(view_x + 120, view_y, "hopeless_boss")
+        spawn_object(view_x + 120, view_y, "hopeless_boss")
     end
     set_var(obj, "boss_timer", get_var(obj, "boss_timer") + 1)
 end

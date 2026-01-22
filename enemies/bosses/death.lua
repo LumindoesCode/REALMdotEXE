@@ -19,7 +19,7 @@ end
 function death_inc.BossIntro(obj)
     init_var(obj, "boss_timer", 0)
     if (get_var(obj, "boss_timer") == 60) then
-        spawn_enemy(view_x + 120, view_y + 120, "death_incarnate")
+        spawn_object(view_x + 120, view_y + 120, "death_incarnate")
     end
     if (get_var(obj, "boss_timer") == 60) then
         boss_message(120, 120, "death scout")

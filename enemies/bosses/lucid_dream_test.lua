@@ -19,7 +19,7 @@ end
 function fake_dream.BossIntro(obj)
     init_var(obj, "boss_timer", 0)
     if (get_var(obj, "boss_timer") == 1) then
-        spawn_enemy(view_x + 120, view_y + 120, "fake_dream")
+        spawn_object(view_x + 120, view_y + 120, "fake_dream")
     end
     set_var(obj, "boss_timer", get_var(obj, "boss_timer") + 1)
 end

@@ -18,7 +18,7 @@ end
 function star.BossIntro(obj)
     init_var(obj, "boss_timer", 0)
     if (get_var(obj, "boss_timer") == 0) then
-        spawn_enemy(view_x + 120, view_y, "star_boss")
+        spawn_object(view_x + 120, view_y, "star_boss")
     end
     if (get_var(obj, "boss_timer") == 85) then
         boss_message(120, 80, "wisp")
